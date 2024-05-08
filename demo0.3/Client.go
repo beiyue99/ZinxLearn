@@ -19,7 +19,7 @@ func main() {
 
 	for {
 		//调用write写数据
-		_, err := conn.Write([]byte("hello zinxV0.1..."))
+		_, err := conn.Write([]byte("hello zinxV0.2..."))
 		if err != nil {
 			fmt.Println("conn Write err", err)
 			return

@@ -7,25 +7,25 @@ import (
 )
 
 type Connection struct {
-	//当前连接tcp套间字
+	//当前连接tcp连接
 	Conn *net.TCPConn
 	//当前连接的ID
 	ConnID uint32
 	//当前连接状态
 	isClosed bool
-	//回调函数
-	handleAPI ziface.HandFunc
 	//通讯的channel
 	ExitChan chan bool
+	//连接的处理方法 router
+	Router ziface.IRouter
 }
 
-func NewConnection(conn *net.TCPConn, connID uint32, callback_api ziface.HandFunc) *Connection {
+func NewConnection(conn *net.TCPConn, connID uint32, router ziface.IRouter) *Connection {
 	c := &Connection{
-		Conn:      conn,
-		ConnID:    connID,
-		handleAPI: callback_api,
-		isClosed:  false,
-		ExitChan:  make(chan bool, 1),
+		Conn:     conn,
+		ConnID:   connID,
+		Router:   router,
+		isClosed: false,
+		ExitChan: make(chan bool, 1),
 	}
 	return c
 }
@@ -37,16 +37,22 @@ func (c *Connection) StartReader() {
 	defer c.Stop()
 	for {
 		buf := make([]byte, 512)
-		cnt, err := c.Conn.Read(buf)
+		_, err := c.Conn.Read(buf)
 		if err != nil {
 			fmt.Println("Read err:", err)
 			continue
 		}
-		//读完数据，调用绑定的handleAPI处理
-		if err := c.handleAPI(c.Conn, buf, cnt); err != nil {
-			fmt.Println("ConnID", c.ConnID, "handle is err", err)
-			break
+		//得到当前conn的请求数据
+		req := Request{
+			conn: c,
+			data: buf,
 		}
+		//从路由中，找到对应的router调用
+		go func(request ziface.IRequest) {
+			c.Router.PreHandle(request)
+			c.Router.Handle(request)
+			c.Router.PostHandle(request)
+		}(&req)
 	}
 }
 
