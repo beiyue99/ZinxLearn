@@ -1,6 +1,8 @@
 package main
 
-import "zinx/znet"
+import (
+	"zinx/znet"
+)
 
 //基于zinx框架开发的服务器应用程序
 
