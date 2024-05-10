@@ -13,7 +13,7 @@ func TestDataPack(t *testing.T) {
 	// 模拟服务器
 	listenner, err := net.Listen("tcp", "127.0.0.1:7777")
 	if err != nil {
-		fmt.Println("server listenner err!", err)
+		fmt.Println("server listener err!", err)
 		return
 	}
 
