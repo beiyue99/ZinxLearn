@@ -14,7 +14,7 @@ type IConnection interface {
 	//获取地址和端口
 	RemoteAddr() net.Addr
 	//发送数据
-	Sent(data []byte) error
+	SendMsg(msgId uint32, data []byte) error
 }
 
 type HandFunc func(*net.TCPConn, []byte, int) error
