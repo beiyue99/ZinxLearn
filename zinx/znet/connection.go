@@ -15,8 +15,10 @@ type Connection struct {
 	ConnID uint32
 	//当前连接状态
 	isClosed bool
-	//通讯的channel
+	//通讯的channel,用于告知写groutine连接已经关闭
 	ExitChan chan bool
+	//用于读写Groutine之间的通信
+	msgChan chan []byte
 	//管理消息id的对应处理方法router
 	MsgHandle ziface.IMsgHandle
 }
@@ -28,6 +30,7 @@ func NewConnection(conn *net.TCPConn, connID uint32, msghandler ziface.IMsgHandl
 		MsgHandle: msghandler,
 		isClosed:  false,
 		ExitChan:  make(chan bool, 1),
+		msgChan:   make(chan []byte),
 	}
 	return c
 }
@@ -86,18 +89,35 @@ func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 		fmt.Println("Pack error msg id=", msgId)
 		return errors.New("pack error msg")
 	}
-	//将数据发送给客户端
-	if _, err := c.Conn.Write(binaryMsg); err != nil {
-		fmt.Println("Write msg id", msgId, "error", err)
-		return errors.New("conn Write error")
-	}
+	//将数据发送给管道
+	c.msgChan <- binaryMsg
 	return nil
+}
+
+// 写消息的groutine，专门把消息发给客户端
+func (c *Connection) StartWriter() {
+	fmt.Println("Write groutine is running!")
+	defer fmt.Println("[conn Write groutine exit!]", c.RemoteAddr().String())
+
+	for {
+		select {
+		case data := <-c.msgChan:
+			//有数据要写给客户端
+			if _, err := c.Conn.Write(data); err != nil {
+				fmt.Println("Send data err", err)
+				return
+			}
+		case <-c.ExitChan:
+			return
+		}
+	}
 }
 
 // 启动连接
 func (c *Connection) Start() {
 	fmt.Println("Conn start...ConnID:", c.ConnID)
 	go c.StartReader()
+	go c.StartWriter()
 }
 
 // 停止连接
@@ -108,7 +128,9 @@ func (c *Connection) Stop() {
 	fmt.Println("Conn stop,ConnID=", c.ConnID)
 	c.isClosed = true
 	c.Conn.Close()
+	c.ExitChan <- true
 	close(c.ExitChan)
+	close(c.msgChan)
 
 }
 
