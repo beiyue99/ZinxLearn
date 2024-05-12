@@ -11,4 +11,6 @@ type Iserver interface {
 	Serve()
 	//路由器
 	AddRouter(msgID uint32, router IRouter)
+	//获取server的连接管理器
+	GetConnMgr() IConnManager
 }

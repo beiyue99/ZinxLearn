@@ -26,6 +26,7 @@ func main() {
 		var a uint32
 		for {
 
+			time.Sleep(8 * time.Second)
 			if b {
 				a = 1
 				b = false

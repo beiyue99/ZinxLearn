@@ -20,6 +20,8 @@ type Server struct {
 	Port int
 	//当前sever的消息管理模块，用来绑定MsgId和处理业务API的关系
 	MsgHandler ziface.IMsgHandle
+	//Server的连接管理器
+	ConnMgr ziface.IConnManager
 }
 
 func (s *Server) Start() {
@@ -53,7 +55,14 @@ func (s *Server) Start() {
 				fmt.Println("Accept err", err)
 				continue
 			}
-			dealConn := NewConnection(conn, cid, s.MsgHandler)
+
+			if s.ConnMgr.Len() >= utils.GlobalObject.MaxConn {
+				fmt.Println("===>too many conn,connnum is", utils.GlobalObject.MaxConn)
+				conn.Close()
+				continue
+			}
+
+			dealConn := NewConnection(s, conn, cid, s.MsgHandler)
 			cid++
 			go dealConn.Start()
 		}
@@ -63,7 +72,8 @@ func (s *Server) Start() {
 func (s *Server) Stop() {
 
 	//将服务器的一些资源释放
-
+	fmt.Println("[stop] Zinx server name", s.Name)
+	s.ConnMgr.ClearConn()
 }
 
 func (s *Server) Serve() {
@@ -78,6 +88,10 @@ func (s *Server) AddRouter(msgID uint32, router ziface.IRouter) {
 	fmt.Println("Add router suss!")
 }
 
+func (s *Server) GetConnMgr() ziface.IConnManager {
+	return s.ConnMgr
+}
+
 // 初始化Server类的方法
 func NewServer(name string) ziface.Iserver {
 	s := &Server{
@@ -86,6 +100,7 @@ func NewServer(name string) ziface.Iserver {
 		IP:         utils.GlobalObject.Host,
 		Port:       utils.GlobalObject.TcpPort,
 		MsgHandler: NewMsgHandle(),
+		ConnMgr:    NewConnManager(),
 	}
 	return s
 }
