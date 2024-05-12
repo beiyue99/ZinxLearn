@@ -28,7 +28,7 @@ type HelloRouter struct {
 
 func (this *HelloRouter) Handle(request ziface.IRequest) {
 	fmt.Println("Call Hello router Handle...")
-	//先打印读取到的客户端的数据，再给客户端回  ping ping ping
+	//先打印读取到的客户端的数据，再给客户端回
 	fmt.Println("recv form client :msgId=", request.GetMsgID(), "data=", string(request.GetData()))
 	err := request.GetConnection().SendMsg(201, []byte("Hello welcome to zinx..."))
 	if err != nil {

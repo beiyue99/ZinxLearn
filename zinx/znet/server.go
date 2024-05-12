@@ -28,6 +28,9 @@ func (s *Server) Start() {
 	fmt.Printf("[zinx] Version is %s,Maxconn is %d,MaxPackage is %d\n", utils.GlobalObject.Version, utils.GlobalObject.MaxConn, utils.GlobalObject.MaxPackageSize)
 
 	go func() {
+		//开启Worker工作池
+		s.MsgHandler.StartWorkerPool()
+
 		//获取一个TCP的地址
 		addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
 		if err != nil {
@@ -50,7 +53,6 @@ func (s *Server) Start() {
 				fmt.Println("Accept err", err)
 				continue
 			}
-			//将处理方法和conn绑定
 			dealConn := NewConnection(conn, cid, s.MsgHandler)
 			cid++
 			go dealConn.Start()
