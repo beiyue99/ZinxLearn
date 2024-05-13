@@ -41,10 +41,21 @@ func DoConnectionBegin(conn ziface.IConnection) {
 	if err := conn.SendMsg(202, []byte("DoConnection Begin")); err != nil {
 		fmt.Println(err)
 	}
+	//给当前连接设置一些属性
+	fmt.Println("Set conn property...")
+	conn.SetProperty("Name", "wujuful")
+	conn.SetProperty("Github", "https://github.com")
 }
 func DoConnectionLost(conn ziface.IConnection) {
 	fmt.Println("=====>DoConnectionLost is called!")
 	fmt.Println("conn ID is", conn.GetConnID(), "lost...")
+	//获取连接属性
+	if name, err := conn.GetProperty("Name"); err == nil {
+		fmt.Println("name=", name)
+	}
+	if github, err := conn.GetProperty("Github"); err == nil {
+		fmt.Println("github=", github)
+	}
 }
 
 func main() {

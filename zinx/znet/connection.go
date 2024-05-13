@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"sync"
 	"zinx/utils"
 	"zinx/ziface"
 )
@@ -22,8 +23,13 @@ type Connection struct {
 	ExitChan chan bool
 	//用于读写Groutine之间的通信
 	msgChan chan []byte
-	//管理消息id的对应处理方法router
+	//管理消息id对应处理方法router的消息管理器
 	MsgHandle ziface.IMsgHandle
+
+	//连接属性集合
+	property map[string]interface{}
+	//保护连接属性的锁
+	propertyLock sync.RWMutex
 }
 
 func NewConnection(server ziface.Iserver, conn *net.TCPConn, connID uint32, msghandler ziface.IMsgHandle) *Connection {
@@ -35,6 +41,7 @@ func NewConnection(server ziface.Iserver, conn *net.TCPConn, connID uint32, msgh
 		isClosed:  false,
 		ExitChan:  make(chan bool, 1),
 		msgChan:   make(chan []byte),
+		property:  make(map[string]interface{}),
 	}
 	c.TcpServer.GetConnMgr().Add(c)
 	return c
@@ -165,4 +172,32 @@ func (c *Connection) GetConnID() uint32 {
 func (c *Connection) RemoteAddr() net.Addr {
 
 	return c.Conn.RemoteAddr()
+}
+
+// 设置连接属性
+func (c *Connection) SetProperty(key string, vaule interface{}) {
+
+	c.propertyLock.Lock()
+	defer c.propertyLock.Unlock()
+	//添加一个连接属性
+	c.property[key] = vaule
+}
+
+// 获取连接属性
+func (c *Connection) GetProperty(key string) (interface{}, error) {
+	c.propertyLock.RLock()
+	defer c.propertyLock.RUnlock()
+	if vaule, ok := c.property[key]; ok {
+		return vaule, nil
+	} else {
+		return nil, errors.New("no property found!")
+	}
+}
+
+// 移除连接属性
+func (c *Connection) RemoveProperty(key string) {
+	c.propertyLock.Lock()
+	defer c.propertyLock.Unlock()
+	delete(c.property, key)
+
 }
