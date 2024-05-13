@@ -128,6 +128,8 @@ func (c *Connection) Start() {
 	fmt.Println("Conn start...ConnID:", c.ConnID)
 	go c.StartReader()
 	go c.StartWriter()
+	//执行按照开发者设置的hook函数
+	c.TcpServer.CallOnConnStart(c)
 }
 
 // 停止连接
@@ -137,6 +139,8 @@ func (c *Connection) Stop() {
 	}
 	fmt.Println("Conn stop,ConnID=", c.ConnID)
 	c.isClosed = true
+	//调用开发者注册的hook函数
+	c.TcpServer.CallOnConnStop(c)
 	c.Conn.Close()
 	c.ExitChan <- true
 	c.TcpServer.GetConnMgr().Remove(c)
