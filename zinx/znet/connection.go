@@ -49,8 +49,8 @@ func NewConnection(server ziface.Iserver, conn *net.TCPConn, connID uint32, msgh
 
 // 连接的读业务方法
 func (c *Connection) StartReader() {
-	fmt.Println("Reader groutine is runing...")
-	defer fmt.Println("connID", c.ConnID, "Reader is exit,RemoteAddr is", c.RemoteAddr().String())
+	// fmt.Println("Reader groutine is runing...")
+	// defer fmt.Println("connID", c.ConnID, "Reader is exit,RemoteAddr is", c.RemoteAddr().String())
 	defer c.Stop()
 	for {
 		//创建一个拆包解包对象
@@ -113,8 +113,8 @@ func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 
 // 写消息的groutine，专门把消息发给客户端
 func (c *Connection) StartWriter() {
-	fmt.Println("Write groutine is running!")
-	defer fmt.Println("[conn Write groutine exit!]", c.RemoteAddr().String())
+	// fmt.Println("Write groutine is running!")
+	// defer fmt.Println("[conn Write groutine exit!]", c.RemoteAddr().String())
 
 	for {
 		select {

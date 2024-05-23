@@ -64,8 +64,8 @@ func (mh *MsgHandle) StartWorkerPool() {
 
 }
 
-//启动一个Worker工作流程
-
+// 启动一个Worker工作流程
+// 通道读取操作 (for request := range taskQueue) 会阻塞，直到通道关闭或者有新的数据可供读取。这是 Go 通道的特性
 func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest) {
 	fmt.Println("WorkerId = ", workerID, "is started!")
 	for request := range taskQueue {

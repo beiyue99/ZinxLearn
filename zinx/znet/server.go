@@ -31,7 +31,7 @@ type Server struct {
 func (s *Server) Start() {
 
 	fmt.Printf("[zinx] Server Name:%s,Listen at %s,%d\n", utils.GlobalObject.Name, utils.GlobalObject.Host, utils.GlobalObject.TcpPort)
-	fmt.Printf("[zinx] Version is %s,Maxconn is %d,MaxPackage is %d\n", utils.GlobalObject.Version, utils.GlobalObject.MaxConn, utils.GlobalObject.MaxPackageSize)
+	fmt.Printf("[zinx] Version is %s,Maxconn is %d,MaxPackageSize is %d\n", utils.GlobalObject.Version, utils.GlobalObject.MaxConn, utils.GlobalObject.MaxPackageSize)
 
 	go func() {
 		//开启Worker工作池
@@ -53,7 +53,6 @@ func (s *Server) Start() {
 		cid := uint32(0)
 		//阻塞等待客户端连接，处理客户端业务
 		for {
-			//如果有客户端连接进来，accept会返回
 			conn, err := listener.AcceptTCP()
 			if err != nil {
 				fmt.Println("Accept err", err)
@@ -73,6 +72,7 @@ func (s *Server) Start() {
 	}()
 }
 
+// 调用连接管理器的ClearConn释放资源
 func (s *Server) Stop() {
 
 	//将服务器的一些资源释放
@@ -80,8 +80,8 @@ func (s *Server) Stop() {
 	s.ConnMgr.ClearConn()
 }
 
+// 调用s.Start启动server的服务功能
 func (s *Server) Serve() {
-	//启动server的服务功能
 	s.Start()
 	// 阻塞主函数，可以做一些启动服务器之后的额外业务
 	select {}

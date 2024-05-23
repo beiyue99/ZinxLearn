@@ -25,8 +25,9 @@ func main() {
 		dp := znet.NewDataPack()
 		var a uint32
 		for {
-
 			time.Sleep(8 * time.Second)
+			// 每8秒发一个数据包
+			// 通过b轮询发送1和0的数据包
 			if b {
 				a = 1
 				b = false
